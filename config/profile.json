@@ -1,0 +1,93 @@
+{
+  "name": "Rara-rookie",
+  "username": "Rara-rookie",
+  "role": "Software Engineer / Developer",
+  "email": "nahyulee@gmail.com",
+  "location": "Seoul, Republic of Korea",
+  "avatar": "images/profile.svg",
+  "hero": {
+    "badge": "Welcome to my portfolio",
+    "subtitle": "사용자 경험을 최우선으로 생각하며, 견고하고 확장 가능한 웹 서비스를 만들어 나갑니다."
+  },
+  "codeWindow": {
+    "title": "developer.js",
+    "passions": [
+      "Clean Code",
+      "Web Accessibility",
+      "Performance"
+    ],
+    "learning": "Always Hungry for Knowledge"
+  },
+  "about": {
+    "subtitle": "문제 해결에 집중하는 호기심 많은 개발자",
+    "description": "웹의 본질과 동작 원리에 관심이 깊으며, HTML/CSS/JavaScript의 튼튼한 기본기를 바탕으로 기술적 문제를 하나씩 풀어가는 과정을 좋아합니다."
+  },
+  "skills": [
+    {
+      "category": "Frontend",
+      "icon": "fa-solid fa-laptop-code",
+      "items": [
+        {
+          "name": "HTML5 (Semantic Markup)",
+          "icon": "fa-brands fa-html5"
+        },
+        {
+          "name": "CSS3 (Flexbox, Grid, Variables)",
+          "icon": "fa-brands fa-css3-alt"
+        },
+        {
+          "name": "JavaScript (ES6+, Async/Await)",
+          "icon": "fa-brands fa-js"
+        },
+        {
+          "name": "React Basics",
+          "icon": "fa-brands fa-react"
+        }
+      ]
+    },
+    {
+      "category": "Backend & DB",
+      "icon": "fa-solid fa-server",
+      "items": [
+        {
+          "name": "Python",
+          "icon": "fa-brands fa-python"
+        },
+        {
+          "name": "Node.js Basics",
+          "icon": "fa-brands fa-node-js"
+        },
+        {
+          "name": "RESTful API Design",
+          "icon": "fa-solid fa-database"
+        },
+        {
+          "name": "MySQL / SQLite",
+          "icon": "fa-solid fa-hard-drive"
+        }
+      ]
+    },
+    {
+      "category": "Tools & Environment",
+      "icon": "fa-solid fa-toolbox",
+      "items": [
+        {
+          "name": "Git & GitHub",
+          "icon": "fa-brands fa-git-alt"
+        },
+        {
+          "name": "Docker Basics",
+          "icon": "fa-brands fa-docker"
+        },
+        {
+          "name": "Linux CLI (Bash)",
+          "icon": "fa-brands fa-linux"
+        },
+        {
+          "name": "VS Code",
+          "icon": "fa-solid fa-code"
+        }
+      ]
+    }
+  ]
+}

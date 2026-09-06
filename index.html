@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Portfolio - b1-1</title>
+  
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- JavaScript (defer) -->
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header id="header" class="header">
+    <div class="container header-container">
+      <a href="#hero" class="logo">
+        <i class="fa-solid fa-code"></i> <span id="header-logo-text">Developer.dev</span>
+      </a>
+
+      <nav id="nav-menu" class="nav-menu">
+        <ul class="nav-list">
+          <li><a href="#hero" class="nav-link active">Home</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+          <li><a href="#skills" class="nav-link">Skills</a></li>
+          <li><a href="#projects" class="nav-link">Projects</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button id="theme-toggle" class="icon-btn" aria-label="다크 모드 토글">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <button id="hamburger" class="hamburger-btn" aria-label="메뉴 열기/닫기">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="hero" class="hero-section">
+      <div class="container hero-container">
+        <div class="hero-content">
+          <span id="hero-badge" class="badge">Welcome to my portfolio</span>
+          <h1 class="hero-title">
+            안녕하세요, <br>
+            성장을 즐기는 개발자 <span id="hero-name" class="highlight">Developer</span>입니다.
+          </h1>
+          <p id="hero-subtitle" class="hero-subtitle">
+            <!-- Dynamically populated from config/profile.json -->
+          </p>
+          <div class="hero-buttons">
+            <a href="#projects" class="btn btn-primary">
+              <i class="fa-solid fa-folder-open"></i> 프로젝트 보기
+            </a>
+            <a href="#contact" class="btn btn-outline">
+              <i class="fa-solid fa-envelope"></i> 연락하기
+            </a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="code-window">
+            <div class="window-header">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+              <span id="code-window-title" class="window-title">developer.js</span>
+            </div>
+            <div class="window-body">
+              <pre><code><span class="keyword">const</span> developer = {
+  name: <span id="code-dev-name" class="string">'Developer'</span>,
+  role: <span id="code-dev-role" class="string">'Frontend / Fullstack Developer'</span>,
+  passions: <span id="code-dev-passions">[]</span>,
+  learning: <span id="code-dev-learning" class="string">''</span>
+};</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section section">
+      <div class="container">
+        <h2 class="section-title">About Me</h2>
+        <p class="section-subtitle">저를 소개합니다</p>
+
+        <div class="about-grid">
+          <div class="about-avatar">
+            <div class="avatar-card">
+              <img id="about-avatar-img" class="avatar-img"
+                   src="images/profile.svg"
+                   alt="Rara-rookie 프로필 이미지" width="240" height="240">
+              <h3 id="about-avatar-name">Developer</h3>
+              <p id="about-avatar-role">Software Engineer</p>
+            </div>
+          </div>
+
+          <div class="about-info">
+            <h3 id="about-title">문제 해결에 집중하는 호기심 많은 개발자</h3>
+            <p id="about-description">
+              <!-- Dynamically populated from config/profile.json -->
+            </p>
+
+            <div class="info-cards">
+              <div class="info-card">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <h4>학습과 성장</h4>
+                <p>새로운 기술 패러다임을 끊임없이 습득하고 적용합니다.</p>
+              </div>
+              <div class="info-card">
+                <i class="fa-solid fa-users"></i>
+                <h4>협업 & 원활한 소통</h4>
+                <p>동료와의 건강한 피드백을 주고받으며 최상의 시너지를 냅니다.</p>
+              </div>
+              <div class="info-card">
+                <i class="fa-solid fa-bolt"></i>
+                <h4>성능 최적화</h4>
+                <p>빠르고 직관적인 사용자 경험을 선사하기 위해 다각도로 고민합니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills-section section">
+      <div class="container">
+        <h2 class="section-title">Skills & Tools</h2>
+        <p class="section-subtitle">사용할 수 있는 기술 스택입니다</p>
+
+        <!-- Dynamic Container for Skills & Tools (Populated from config/profile.json) -->
+        <div id="skills-grid" class="skills-grid">
+          <!-- Dynamically populated by main.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section (GitHub API) -->
+    <section id="projects" class="projects-section section">
+      <div class="container">
+        <h2 class="section-title">Projects</h2>
+        <p class="section-subtitle">GitHub API로 불러온 실시간 프로젝트 목록입니다</p>
+
+        <!-- GitHub User Search & Filters -->
+        <div class="project-controls">
+          <div class="user-search-box">
+            <label for="github-username-input" class="sr-only">GitHub 사용자명</label>
+            <input type="text" id="github-username-input" value="" placeholder="GitHub 사용자명 입력">
+            <button id="github-search-btn" class="btn btn-secondary">
+              <i class="fa-solid fa-magnifying-glass"></i> 조회
+            </button>
+          </div>
+
+          <div id="filter-buttons" class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="javascript">JavaScript</button>
+            <button class="filter-btn" data-filter="python">Python</button>
+            <button class="filter-btn" data-filter="html">HTML/CSS</button>
+          </div>
+        </div>
+
+        <!-- Dynamic Container for Loading, Error, Empty, and Success States -->
+        <div id="projects-container" class="projects-grid">
+          <!-- Dynamically populated by main.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section section">
+      <div class="container">
+        <h2 class="section-title">Get In Touch</h2>
+        <p class="section-subtitle">궁금한 점이나 프로젝트 제안이 있다면 편하게 메시지를 남겨주세요</p>
+
+        <div class="contact-wrapper">
+          <div class="contact-info">
+            <div class="contact-item">
+              <i class="fa-solid fa-envelope"></i>
+              <div>
+                <h4>Email</h4>
+                <p id="contact-email-text"></p>
+              </div>
+            </div>
+            <div class="contact-item">
+              <i class="fa-brands fa-github"></i>
+              <div>
+                <h4>GitHub</h4>
+                <p><a id="contact-github-link" href="#" target="_blank" rel="noopener noreferrer"></a></p>
+              </div>
+            </div>
+            <div class="contact-item">
+              <i class="fa-solid fa-location-dot"></i>
+              <div>
+                <h4>Location</h4>
+                <p id="contact-location-text">Seoul, Republic of Korea</p>
+              </div>
+            </div>
+          </div>
+
+          <form id="contact-form" class="contact-form" novalidate>
+            <div class="form-group">
+              <label for="contact-name">이름 <span class="required">*</span></label>
+              <input type="text" id="contact-name" name="name" placeholder="홍길동">
+              <span id="name-error" class="error-msg"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-email">이메일 <span class="required">*</span></label>
+              <input type="email" id="contact-email" name="email" placeholder="example@email.com">
+              <span id="email-error" class="error-msg"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-message">메시지 <span class="required">*</span></label>
+              <textarea id="contact-message" name="message" rows="5" placeholder="메시지 내용을 입력해 주세요."></textarea>
+              <span id="message-error" class="error-msg"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+              <i class="fa-solid fa-paper-plane"></i> 메시지 보내기
+            </button>
+
+            <div id="form-success" class="form-success-msg hidden">
+              <i class="fa-solid fa-circle-check"></i> 메시지가 성공적으로 전송되었습니다!
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <p id="footer-copy-text"></p>
+      <div class="footer-links">
+        <a id="footer-github-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="GitHub Profile">
+          <i class="fa-brands fa-github"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll To Top Button -->
+  <button id="scroll-top-btn" class="scroll-top-btn" aria-label="페이지 맨 위로 이동">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+</body>
+</html>

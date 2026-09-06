@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="프로필 이미지">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <clipPath id="circle"><circle cx="120" cy="120" r="112"/></clipPath>
+  </defs>
+
+  <circle cx="120" cy="120" r="112" fill="url(#bg)"/>
+
+  <g clip-path="url(#circle)">
+    <!-- 어깨 -->
+    <path d="M120 148c-42 0-76 26-76 58v46h152v-46c0-32-34-58-76-58z" fill="#dbeafe"/>
+    <!-- 머리 -->
+    <circle cx="120" cy="102" r="42" fill="#dbeafe"/>
+    <!-- 코드 기호 — 개발자 정체성 -->
+    <g stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <polyline points="104,96 92,106 104,116"/>
+      <polyline points="136,96 148,106 136,116"/>
+    </g>
+  </g>
+
+  <circle cx="120" cy="120" r="112" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="4"/>
+</svg>

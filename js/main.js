@@ -26,10 +26,80 @@ document.addEventListener('DOMContentLoaded', () => {
   const messageError = document.querySelector('#message-error');
   const formSuccess = document.querySelector('#form-success');
 
-  // Application State
-  let repositoriesState = [];
-  let currentFilter = 'all';
+  /* ==========================================================================
+     상태 (Single Source of Truth)
+
+     화면을 결정하는 값을 전부 이 객체 하나에 모은다. 예전에는 값마다 let 변수가
+     따로 있었고, 테마는 아예 변수가 없어 DOM(data-theme)에서 되읽어야 했다.
+     그러면 "지금 화면이 어떤 상태인가" 를 코드에 물어볼 수가 없다.
+
+     규칙 하나: **DOM 을 직접 만지지 않는다. setState 로 상태를 바꾸면
+     해당 슬라이스의 render 함수가 화면을 맞춘다.**
+     ========================================================================== */
+  const state = {
+    // mode 를 null 로 시작하는 이유: 첫 setState 가 반드시 렌더를 타게 해서
+    // localStorage 기록과 아이콘 초기화를 건너뛰지 않게 한다.
+    theme: { mode: null },
+
+    projects: {
+      status: 'idle',      // idle | loading | success | error
+      username: '',
+      repos: [],
+      filter: 'all',
+      error: null
+    },
+
+    form: {
+      errors: { name: '', email: '', message: '' },
+      success: false
+    },
+
+    nav: {
+      menuOpen: false,
+      headerScrolled: false,
+      showScrollTop: false,
+      activeSection: 'hero'
+    }
+  };
+
+  /**
+   * 상태를 바꾸고, 바뀐 슬라이스만 다시 그린다.
+   *
+   * setState({ projects: { filter: 'python' } })
+   *
+   * 값이 실제로 달라졌을 때만 렌더를 부른다. 스크롤은 초당 수십 번 들어오는데
+   * 대부분 같은 값이라, 이 비교가 없으면 헛된 DOM 쓰기가 계속 일어난다.
+   */
+  const setState = (patch) => {
+    const dirty = [];
+
+    Object.keys(patch).forEach((slice) => {
+      const before = state[slice];
+      const after = { ...before, ...patch[slice] };
+      const changed = Object.keys(after).some((key) => after[key] !== before[key]);
+
+      if (changed) {
+        state[slice] = after;
+        dirty.push(slice);
+      }
+    });
+
+    // RENDERERS 는 render 함수들이 모두 정의된 뒤 아래쪽에서 만든다.
+    dirty.forEach((slice) => {
+      const render = RENDERERS[slice];
+      if (render) render();
+    });
+  };
+
+  // 화면 상태가 아니라 자원 핸들이라 state 에 넣지 않는다.
   let typingTimer = null;
+
+  // 과제가 "자유 변경 가능하나 README 에 명시" 를 요구한 값들.
+  const SCROLL_HEADER_THRESHOLD = 60;
+  const SCROLL_TOP_THRESHOLD = 300;
+  const ANIMATION_THRESHOLD = 0.2;
+  const FORM_SUCCESS_DURATION = 5000;
+  const DEFAULT_USERNAME = 'Rara-rookie';
 
   /* ==========================================================================
      0. Dynamic Profile Configuration & External File Loading (config/profile.json)
@@ -253,50 +323,59 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==========================================================================
      1. Theme Management (Dark / Light Mode)
      ========================================================================== */
+  // 렌더 — state.theme 을 화면과 저장소에 반영한다.
+  const renderTheme = () => {
+    const { mode } = state.theme;
+
+    document.documentElement.setAttribute('data-theme', mode);
+    localStorage.setItem('theme', mode);
+
+    const icon = themeToggleBtn.querySelector('i');
+    icon.className = mode === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  };
+
   const initTheme = () => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    const themeToApply = savedTheme || (prefersDark ? 'dark' : 'light');
-    applyTheme(themeToApply);
+
+    setState({ theme: { mode: savedTheme || (prefersDark ? 'dark' : 'light') } });
   };
 
-  const applyTheme = (theme) => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-
-    const icon = themeToggleBtn.querySelector('i');
-    if (theme === 'dark') {
-      icon.className = 'fa-solid fa-sun';
-    } else {
-      icon.className = 'fa-solid fa-moon';
-    }
-  };
-
+  // 이벤트는 상태만 바꾼다. DOM 은 renderTheme 이 맡는다.
   themeToggleBtn.addEventListener('click', () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    applyTheme(newTheme);
+    setState({ theme: { mode: state.theme.mode === 'dark' ? 'light' : 'dark' } });
   });
 
   /* ==========================================================================
      2. Mobile Navigation & Hamburger Menu
      ========================================================================== */
+  // 렌더 — state.nav 를 클래스로 옮긴다. 메뉴·헤더·스크롤탑·활성 링크가 한곳에서 결정된다.
+  const renderNav = () => {
+    const { menuOpen, headerScrolled, showScrollTop, activeSection } = state.nav;
+
+    hamburgerBtn.classList.toggle('active', menuOpen);
+    navMenu.classList.toggle('active', menuOpen);
+    header.classList.toggle('scrolled', headerScrolled);
+    scrollTopBtn.classList.toggle('visible', showScrollTop);
+
+    navLinks.forEach((link) => {
+      link.classList.toggle('active', link.getAttribute('href') === `#${activeSection}`);
+    });
+  };
+
   hamburgerBtn.addEventListener('click', () => {
-    hamburgerBtn.classList.toggle('active');
-    navMenu.classList.toggle('active');
+    setState({ nav: { menuOpen: !state.nav.menuOpen } });
   });
 
   navLinks.forEach((link) => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      
-      hamburgerBtn.classList.remove('active');
-      navMenu.classList.remove('active');
+
+      setState({ nav: { menuOpen: false } });
 
       const targetId = link.getAttribute('href');
       const targetSection = document.querySelector(targetId);
-      
+
       if (targetSection) {
         targetSection.scrollIntoView({ behavior: 'smooth' });
       }
@@ -306,33 +385,26 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==========================================================================
      3. Scroll Event Listeners (Header & Scroll Top)
      ========================================================================== */
+  const sectionElements = document.querySelectorAll('section[id]');
+
   window.addEventListener('scroll', () => {
     const scrollY = window.scrollY;
 
-    if (scrollY > 60) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
-    }
-
-    if (scrollY > 300) {
-      scrollTopBtn.classList.add('visible');
-    } else {
-      scrollTopBtn.classList.remove('visible');
-    }
-
-    const sections = document.querySelectorAll('section[id]');
-    sections.forEach((section) => {
-      const sectionHeight = section.offsetHeight;
+    let activeSection = state.nav.activeSection;
+    sectionElements.forEach((section) => {
       const sectionTop = section.offsetTop - 100;
-      const sectionId = section.getAttribute('id');
-      const navLink = document.querySelector(`.nav-link[href="#${sectionId}"]`);
+      if (scrollY > sectionTop && scrollY <= sectionTop + section.offsetHeight) {
+        activeSection = section.getAttribute('id');
+      }
+    });
 
-      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
-        if (navLink) {
-          navLinks.forEach((l) => l.classList.remove('active'));
-          navLink.classList.add('active');
-        }
+    // 값이 그대로면 setState 가 렌더를 건너뛴다. 스크롤 한 번마다
+    // 클래스를 다시 쓰던 예전 방식과 달라지는 지점이다.
+    setState({
+      nav: {
+        headerScrolled: scrollY > SCROLL_HEADER_THRESHOLD,
+        showScrollTop: scrollY > SCROLL_TOP_THRESHOLD,
+        activeSection
       }
     });
   });
@@ -347,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const observerOptions = {
     root: null,
     rootMargin: '0px',
-    threshold: 0.2
+    threshold: ANIMATION_THRESHOLD
   };
 
   const animationObserver = new IntersectionObserver((entries, observer) => {
@@ -383,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   };
 
-  const renderErrorState = (errorMessage, username) => {
+  const renderErrorState = (errorMessage) => {
     projectsContainer.innerHTML = `
       <div class="state-box error">
         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -399,20 +471,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (retryBtn) {
       // 실패한 이름을 그대로 다시 보내면, 사용자가 오타를 고쳐도 영원히 같은
       // 에러가 난다. 지금 입력창에 있는 값을 우선 쓰고, 비어 있을 때만
-      // 직전 이름으로 되돌아간다. (Rate Limit 재시도는 이름이 그대로라 그대로 동작한다)
+      // 직전에 시도한 이름(state)으로 되돌아간다.
       retryBtn.addEventListener('click', () => {
         const current = githubUsernameInput ? githubUsernameInput.value.trim() : '';
-        fetchGitHubProjects(current || username);
+        fetchGitHubProjects(current || state.projects.username);
       });
     }
   };
 
-  const renderEmptyState = () => {
+  const renderEmptyState = (detail = '해당 조건에 일치하는 저장소가 존재하지 않습니다.') => {
     projectsContainer.innerHTML = `
       <div class="state-box">
         <i class="fa-solid fa-folder-open"></i>
         <h3>표시할 프로젝트가 없습니다</h3>
-        <p>해당 조건에 일치하는 저장소가 존재하지 않습니다.</p>
+        <p>${detail}</p>
       </div>
     `;
   };
@@ -454,38 +526,87 @@ document.addEventListener('DOMContentLoaded', () => {
     projectsContainer.innerHTML = cardsHtml;
   };
 
-  const filterAndRenderRepos = () => {
-    if (currentFilter === 'all') {
-      renderProjectsGrid(repositoriesState);
-      return;
-    }
+  /** 순수 함수 — 저장소 목록에서 필터에 맞는 것만 고른다. 상태를 건드리지 않는다. */
+  const selectRepos = (repos, filter) => {
+    if (filter === 'all') return repos;
 
-    const filtered = repositoriesState.filter((repo) => {
+    return repos.filter((repo) => {
       if (!repo.language) return false;
       const repoLang = repo.language.toLowerCase();
-      if (currentFilter === 'html') {
+      if (filter === 'html') {
         return repoLang === 'html' || repoLang === 'css';
       }
-      return repoLang === currentFilter;
+      return repoLang === filter;
     });
-
-    renderProjectsGrid(filtered);
   };
 
-  const fetchGitHubProjects = async (username = 'Rara-rookie') => {
-    if (!username.trim()) {
-      renderErrorState('올바른 GitHub 사용자명을 입력하세요.', username);
+  /**
+   * 렌더 — state.projects 하나만 보고 어떤 화면을 그릴지 정한다.
+   *
+   * 예전에는 fetch 안에서 렌더 함수를 직접 골라 불렀다. 그러면 "지금 로딩
+   * 중인가" 를 코드에 물어볼 수가 없고, 컨테이너의 innerHTML 을 들여다봐야 한다.
+   * 이제는 status 가 답을 갖고 있다.
+   */
+  const renderProjects = () => {
+    const { status, repos, filter, error } = state.projects;
+
+    // 필터 버튼의 활성 표시도 상태에서 나온다.
+    filterButtons.forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+    });
+
+    if (status === 'idle') {
+      projectsContainer.innerHTML = '';
       return;
     }
 
-    renderLoadingState();
+    if (status === 'loading') {
+      renderLoadingState();
+      return;
+    }
+
+    if (status === 'error') {
+      renderErrorState(error);
+      return;
+    }
+
+    const visible = selectRepos(repos, filter);
+
+    if (visible.length === 0) {
+      // repos 를 상태로 들고 있으니 두 경우를 구분해 말할 수 있다.
+      renderEmptyState(
+        repos.length === 0
+          ? '이 사용자에게 공개된 저장소가 없습니다.'
+          : '해당 언어로 작성된 저장소가 없습니다.'
+      );
+      return;
+    }
+
+    renderProjectsGrid(visible);
+  };
+
+  /**
+   * GitHub 저장소를 받아 온다. **DOM 을 직접 만지지 않는다** — 상태만 바꾸고,
+   * 화면은 renderProjects 가 맡는다. 로딩·성공·에러가 전부 status 값이 된다.
+   */
+  const fetchGitHubProjects = async (username = DEFAULT_USERNAME) => {
+    const trimmed = (username || '').trim();
+
+    if (!trimmed) {
+      setState({
+        projects: { status: 'error', error: '올바른 GitHub 사용자명을 입력하세요.' }
+      });
+      return;
+    }
+
+    setState({ projects: { status: 'loading', username: trimmed, error: null } });
 
     try {
-      const response = await fetch(`https://api.github.com/users/${encodeURIComponent(username.trim())}/repos?sort=updated&per_page=12`);
-      
+      const response = await fetch(`https://api.github.com/users/${encodeURIComponent(trimmed)}/repos?sort=updated&per_page=12`);
+
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(`사용자 '${username}'을(를) 찾을 수 없습니다.`);
+          throw new Error(`사용자 '${trimmed}'을(를) 찾을 수 없습니다.`);
         } else if (response.status === 403) {
           throw new Error('API 호출 한도(Rate Limit)가 초과되었습니다. 잠시 후 다시 시도해 주세요.');
         } else {
@@ -494,10 +615,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const repos = await response.json();
-      repositoriesState = repos;
-      filterAndRenderRepos();
+      setState({ projects: { status: 'success', repos, error: null } });
     } catch (error) {
-      renderErrorState(error.message || '네트워크 연결 상태를 확인하세요.', username);
+      setState({
+        projects: {
+          status: 'error',
+          error: error.message || '네트워크 연결 상태를 확인하세요.'
+        }
+      });
     }
   };
 
@@ -515,10 +640,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   filterButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      filterButtons.forEach((btn) => btn.classList.remove('active'));
-      button.classList.add('active');
-      currentFilter = button.getAttribute('data-filter');
-      filterAndRenderRepos();
+      // 데이터를 다시 받지 않는다. 필터 상태만 바꾸면 renderProjects 가
+      // state.projects.repos 에서 다시 골라 그린다.
+      setState({ projects: { filter: button.getAttribute('data-filter') } });
     });
   });
 
@@ -530,81 +654,93 @@ document.addEventListener('DOMContentLoaded', () => {
     return re.test(String(email).toLowerCase());
   };
 
-  const clearFormErrors = () => {
-    nameInput.classList.remove('invalid');
-    emailInput.classList.remove('invalid');
-    messageInput.classList.remove('invalid');
-    nameError.textContent = '';
-    emailError.textContent = '';
-    messageError.textContent = '';
-    formSuccess.classList.add('hidden');
+  // 필드 이름 → [입력 요소, 에러 문구 자리] 짝. 렌더와 초기화가 이 표를 함께 쓴다.
+  const FORM_FIELDS = {
+    name: [nameInput, nameError],
+    email: [emailInput, emailError],
+    message: [messageInput, messageError]
+  };
+
+  /** 순수 함수 — 값을 받아 에러 표를 만든다. DOM 도 상태도 건드리지 않는다. */
+  const validateForm = ({ name, email, message }) => ({
+    name: name ? '' : '이름을 입력해 주세요.',
+    email: !email
+      ? '이메일을 입력해 주세요.'
+      : (validateEmail(email) ? '' : '올바른 이메일 형식이 아닙니다 (예: name@domain.com).'),
+    message: message ? '' : '메시지 내용을 입력해 주세요.'
+  });
+
+  /** 렌더 — state.form 을 화면에 옮긴다. 에러 문구와 성공 배너가 여기서만 결정된다. */
+  const renderForm = () => {
+    const { errors, success } = state.form;
+
+    Object.keys(FORM_FIELDS).forEach((field) => {
+      const [input, slot] = FORM_FIELDS[field];
+      const message = errors[field];
+
+      input.classList.toggle('invalid', Boolean(message));
+      slot.textContent = message;
+    });
+
+    formSuccess.classList.toggle('hidden', !success);
   };
 
   contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    clearFormErrors();
 
-    let isValid = true;
+    const values = {
+      name: nameInput.value.trim(),
+      email: emailInput.value.trim(),
+      message: messageInput.value.trim()
+    };
 
-    const nameVal = nameInput.value.trim();
-    if (!nameVal) {
-      nameInput.classList.add('invalid');
-      nameError.textContent = '이름을 입력해 주세요.';
-      isValid = false;
-    }
+    const errors = validateForm(values);
+    const isValid = Object.keys(errors).every((field) => !errors[field]);
 
-    const emailVal = emailInput.value.trim();
-    if (!emailVal) {
-      emailInput.classList.add('invalid');
-      emailError.textContent = '이메일을 입력해 주세요.';
-      isValid = false;
-    } else if (!validateEmail(emailVal)) {
-      emailInput.classList.add('invalid');
-      emailError.textContent = '올바른 이메일 형식이 아닙니다 (예: name@domain.com).';
-      isValid = false;
-    }
-
-    const messageVal = messageInput.value.trim();
-    if (!messageVal) {
-      messageInput.classList.add('invalid');
-      messageError.textContent = '메시지 내용을 입력해 주세요.';
-      isValid = false;
-    }
+    setState({ form: { errors, success: isValid } });
 
     if (isValid) {
-      formSuccess.classList.remove('hidden');
       contactForm.reset();
-      
-      setTimeout(() => {
-        formSuccess.classList.add('hidden');
-      }, 5000);
+      setTimeout(() => setState({ form: { success: false } }), FORM_SUCCESS_DURATION);
     }
   });
 
+  // 입력 중에는 그 필드의 조건이 풀렸을 때만 에러를 지운다.
+  // 이미 깨끗하면 setState 를 부르지 않아 헛된 렌더가 생기지 않는다.
+  const clearFieldError = (field, isResolved) => {
+    if (!state.form.errors[field] || !isResolved) return;
+    setState({ form: { errors: { ...state.form.errors, [field]: '' } } });
+  };
+
   nameInput.addEventListener('input', () => {
-    if (nameInput.value.trim()) {
-      nameInput.classList.remove('invalid');
-      nameError.textContent = '';
-    }
+    clearFieldError('name', Boolean(nameInput.value.trim()));
   });
 
   emailInput.addEventListener('input', () => {
-    if (validateEmail(emailInput.value.trim())) {
-      emailInput.classList.remove('invalid');
-      emailError.textContent = '';
-    }
+    clearFieldError('email', validateEmail(emailInput.value.trim()));
   });
 
   messageInput.addEventListener('input', () => {
-    if (messageInput.value.trim()) {
-      messageInput.classList.remove('invalid');
-      messageError.textContent = '';
-    }
+    clearFieldError('message', Boolean(messageInput.value.trim()));
   });
 
   /* ==========================================================================
-     7. Initialization
+     7. 렌더러 레지스트리와 초기화
+
+     setState 는 이 표를 보고 "바뀐 슬라이스" 에 해당하는 render 만 부른다.
+     상태를 추가하려면 여기에 한 줄 늘리면 되고, 상태를 바꾸는 쪽은
+     어떤 함수를 불러야 할지 알 필요가 없다.
      ========================================================================== */
+  const RENDERERS = {
+    theme: renderTheme,
+    projects: renderProjects,
+    form: renderForm,
+    nav: renderNav
+  };
+
+  // 디버깅용. 콘솔에서 window.appState 로 현재 상태를 그대로 볼 수 있다.
+  window.appState = state;
+
   initTheme();
   loadProfileFromFile();
 });

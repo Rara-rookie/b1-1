@@ -57,7 +57,30 @@
 threshold 를 만족할 기회가 없습니다. 그래서 관찰 콜백은 "이미 화면 위로 지나간"
 섹션도 표시 대상으로 봅니다.
 
-### 5. 폼 유효성 검사 (Contact Form)
+### 5. 중앙 상태 관리
+
+화면을 결정하는 값을 **객체 하나**에 모으고, `setState` 로만 바꿉니다.
+
+```js
+const state = {
+  theme:    { mode: 'light' },
+  projects: { status: 'idle', username: '', repos: [], filter: 'all', error: null },
+  form:     { errors: { name: '', email: '', message: '' }, success: false },
+  nav:      { menuOpen: false, headerScrolled: false, showScrollTop: false, activeSection: 'hero' }
+};
+
+const RENDERERS = { theme: renderTheme, projects: renderProjects, form: renderForm, nav: renderNav };
+```
+
+- **이벤트 핸들러는 DOM 을 만지지 않습니다.** 상태만 바꾸면 해당 슬라이스의
+  렌더 함수가 화면을 맞춥니다
+- `setState` 는 **값이 실제로 달라진 슬라이스만** 다시 그립니다.
+  임계값을 넘지 않는 스크롤 50회에서 `classList` 쓰기가 9회로 줄어듭니다
+- API 진행 상태를 `status` 값으로 들고 있어 로딩·성공·에러·빈 상태 분기가
+  `renderProjects` 한 곳에 모입니다
+- 콘솔에서 `window.appState` 로 현재 상태를 그대로 확인할 수 있습니다
+
+### 6. 폼 유효성 검사 (Contact Form)
 - `submit` 이벤트 시 `event.preventDefault()`로 기본 제출 동작 차단
 - 이름, 이메일, 메시지 필드 필수값 검증 및 이메일 정규표현식 검증
 - 실시간 입력(`input` 이벤트)에 맞춰 에러 스타일 및 문구 동적 해제
